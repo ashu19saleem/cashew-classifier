@@ -10,11 +10,13 @@ from firebase_admin import credentials, firestore
 
 st.set_page_config(page_title="Cashew Grade Classifier", page_icon="🌰")
 
-# Initialize Firebase
+# Initialize Firebase from Streamlit secrets
 try:
     firebase_admin.get_app()
 except ValueError:
-    cred = credentials.Certificate("firebase_config.json.json")
+    firebase_secrets = dict(st.secrets["firebase"])
+    firebase_secrets["private_key"] = firebase_secrets["private_key"].replace("\\n", "\n")
+    cred = credentials.Certificate(firebase_secrets)
     firebase_admin.initialize_app(cred)
 db = firestore.client()
 
