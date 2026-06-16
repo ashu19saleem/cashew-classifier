@@ -7,6 +7,8 @@ import json
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
+import gdown
+import os
 
 st.set_page_config(page_title="Cashew Grade Classifier", page_icon="🌰")
 
@@ -22,7 +24,13 @@ db = firestore.client()
 
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("cashew_classifier.keras")
+    model_path = "cashew_classifier.keras"
+    if not os.path.exists(model_path):
+        gdown.download(
+            "https://drive.google.com/uc?id=1H_FpxeCVLcqNSAka31pgmGL_hWc4PYiW",
+            model_path, quiet=False
+        )
+    model = tf.keras.models.load_model(model_path)
     with open("class_names.json") as f:
         class_names = json.load(f)
     return model, class_names
@@ -51,7 +59,6 @@ if uploaded_file is not None:
     st.success(f"Predicted Grade: **{pred_class}**")
     st.info(f"Confidence: {confidence:.2f}%")
 
-    # Log prediction to Firestore
     db.collection("predictions").add({
         "prediction": pred_class,
         "confidence": float(confidence),
